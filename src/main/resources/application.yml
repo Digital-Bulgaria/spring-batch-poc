@@ -1,0 +1,10 @@
+#Embedded database - supported types by Spring are H2, Derby, HSQL.
+#Missing datasource URL means that Boot will try to wire embedded DB.
+spring:
+  datasource:
+    username: "root"
+    password: ""
+  jpa:
+    hibernate:
+      #Validates the DB tables, powered by liquidbase
+      ddl-auto: create-drop
