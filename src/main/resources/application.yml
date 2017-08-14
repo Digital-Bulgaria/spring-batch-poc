@@ -8,3 +8,10 @@ spring:
     hibernate:
       #Validates the DB tables, powered by liquidbase
       ddl-auto: create-drop
+
+#Disable execution on startup
+#http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-external-config
+spring:
+  batch:
+    job:
+      enabled: false
