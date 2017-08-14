@@ -5,7 +5,10 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
@@ -17,7 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
 @Configuration
 @EnableBatchProcessing
@@ -36,6 +41,9 @@ public class BatchConfiguration {
   @Autowired
   @Qualifier("predictionItemProcessor")
   private ItemProcessor<PredictionItem, PredictionEntity> itemProcessor;
+
+  @Autowired
+  private JobRepository jobRepository;
 
   @Bean
   public ItemReader<PredictionItem> reader() {
@@ -57,8 +65,9 @@ public class BatchConfiguration {
   }
 
   @Bean
-  public Job importUserJob() {
-    return jobBuilderFactory.get("importPredictions")
+  @Qualifier("importPredictionsJob")
+  public Job importPredictionsJob() {
+    return jobBuilderFactory.get("importPredictionsJob")
                             .incrementer(new RunIdIncrementer())
                             .flow(step1())
                             .end()
@@ -74,4 +83,19 @@ public class BatchConfiguration {
         .build();
   }
   // end::jobstep[]
+
+  @Bean
+  public JobLauncher jobLauncher() throws Exception
+  {
+    //@see
+    //http://docs.spring.io/spring-batch/4.0.x/reference/html/job.html#configuringJobLauncher
+
+    SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
+
+    jobLauncher.setJobRepository(jobRepository);
+    jobLauncher.setTaskExecutor(new SimpleAsyncTaskExecutor());
+    jobLauncher.afterPropertiesSet();
+
+    return jobLauncher;
+  }
 }
